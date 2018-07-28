@@ -183,7 +183,7 @@ function _verifyCoherencyOfTranslations(dictionary, platform) {
             var notImplementedCount = DEFAULT_TRANSLATION_LANGUAGES_COUNT - _.size(value.translationByLanguage)
             inconsistency = true
             var missingLanguages = _.difference(allSupportedCountries, _.keys(value.translationByLanguage))
-            warningMessages.push(`\tMissing translation for ${notImplementedCount} languages: [${missingLanguages}] for key: "${key}"\n`)
+            warningMessages.push(`\tMissing translation for ${notImplementedCount} languages: [${missingLanguages}] for generic_key: "${value.generic_key}"\n`)
         }
     })
     if (inconsistency) {
@@ -191,15 +191,20 @@ function _verifyCoherencyOfTranslations(dictionary, platform) {
     }
 }
 
+function _sanitizeGenericKey(genericKey) {
+    return genericKey.replace(/“|”|\\\\"|\.|:|\n|\s|\'|\\|\,|\?|/g, "")
+}
+
 function _pushToDictionary(dictionary, genericKey, extractedKey, extractedValue, language) {
     var transformedGenericKey = config.caseSensitiveSearch ? genericKey : genericKey.toLowerCase()
+    transformedGenericKey = _sanitizeGenericKey(transformedGenericKey)
+
     if (!dictionary[extractedKey]) {
         dictionary[extractedKey] = {
             translationByLanguage: {}
         }
     }
     if (language === "en") {
-        //TODO: plamen5kov: (think about a solution) we will have multiple generic_keys that will be the same for different extractedKey
         dictionary[extractedKey].generic_key = transformedGenericKey
     }
     if (!dictionary[extractedKey].translationByLanguage[language]) {

@@ -12,6 +12,6 @@
     "androidCustomPath": "values-%supportedCountries%/strings_v2.xml",
 
     "reportFileSuffix": "report.txt",
-    "disableLogging": true,
-    "caseSensitiveSearch": true
+    "disableLogging": false,
+    "caseSensitiveSearch": false
 }

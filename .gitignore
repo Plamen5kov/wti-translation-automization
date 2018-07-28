@@ -1,5 +1,7 @@
 node_modules/
-ios-report.txt
-android-report.txt
 .vscode/
 pulled/
+
+ios-report.txt
+android-report.txt
+differences.txt
