@@ -1,0 +1,6 @@
+node_modules/
+ios-report.txt
+android-report.txt
+.vscode/
+pulled/
+app/configuration.json
