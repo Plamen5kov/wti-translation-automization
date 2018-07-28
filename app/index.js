@@ -50,7 +50,7 @@ function _checkWhatsMissing(checkFromArray, fillInArray, platform) {
 }
 
 function _generateReportFile(equalGenericKeys, differentGenericKeys, platform) {
-    var reportFileName = `${platform}-${config.reportFilePath}`
+    var reportFileName = `${platform}-${config.reportFileSuffix}`
 
     try { fs.unlinkSync(reportFileName) } catch (e) { }
     fs.writeFileSync(reportFileName, `### Equal ios and android translations: Size: ${_.size(equalGenericKeys)} ###\n`)
