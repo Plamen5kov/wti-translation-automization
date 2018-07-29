@@ -7,6 +7,7 @@ const pull = require(`./wti.pull`)
 const loadStrings = require(`./load.strings`)
 const config = require(`./configuration.json`)
 const xmlHelper = require(`./xml.parser`)
+const prompter = require(`./prompter`)
 
 const customSeparator = `***`
 
@@ -41,11 +42,65 @@ function successCallback(data) {
         diffDataIos.equalGenericKeys)
 
     // user interaction prompt?
-    //TODO: plamen5kov: implement later (ask user to leave the keys he wants to migrate)
+    prompter.runPromptWithQuestion(diffKeyFiles.missingFromIosFileName, diffKeyFiles.missingFromAndroidFileName).then((choice) => {
+        switch (choice) {
+            case 1:
+                migrateIos(diffKeyFiles.missingFromIosFileName, data.androidData.androidTranslationsByKey, `ios`)
+                process.exit(0)
+                break;
+            case 2:
+                migrateAndroid(diffKeyFiles.missingFromAndroidFileName, data.iosData.iosTranslationsByKey, `android`)
+                    .then(() => { process.exit(0) })
+                break;
+            case 3:
+                migrateIos(diffKeyFiles.missingFromIosFileName, data.androidData.androidTranslationsByKey, `ios`)
+                migrateAndroid(diffKeyFiles.missingFromAndroidFileName, data.iosData.iosTranslationsByKey, `android`)
+                    .then(() => { process.exit(0) })
+                break;
+            case 4:
+                process.exit(0)
+                break;
+            default:
+                process.exit(0)
+                break;
+        }
 
-    var migrateMeToIos = runDataTransformation(diffKeyFiles.missingFromIosFileName, data.androidData.androidTranslationsByKey, `ios`)
-    helpers.iterateOverPulledFiles(`ios`, (data) => {
-        var language = helpers.extractLanguageFromFileName(data.fileToSave, `ios`)
+    })
+}
+
+function migrateAndroid(missingFromAndroidFileName, iosTranslationsByKey, platform) {
+    return new Promise((resolve, reject) => {
+        var counter = 0
+        var migrateMeToAndroid = runDataTransformation(missingFromAndroidFileName, iosTranslationsByKey, platform)
+        var jsonTemplate = xmlHelper.getXmlFileAsJson(`${xmlHelper.translationsTemplatePath}`).then((jsonTemplate) => {
+            helpers.iterateOverPulledFiles(platform, (data) => {
+                var language = helpers.extractLanguageFromFileName(data.fileToSave, platform)
+                xmlHelper.getXmlFileAsJson(data.fileToSave).then((currentTranslationsAsJson) => {
+                    var translationForCurrentLanguage = []
+                    _(migrateMeToAndroid).forEach((translations, key) => {
+
+                        var transformedKey = helpers.sanitizeKey(key.toLowerCase()).replace(/[^\w|\d]/g, `_`)
+                        var value = translations[language]
+                        var newTranslation = xmlHelper.getTemplateAsJson(transformedKey, value)
+                        currentTranslationsAsJson.resources.string.push(newTranslation)
+                    })
+
+                    counter++
+                    xmlHelper.buildXmlFrom(currentTranslationsAsJson, data.fileToSave)
+                    if (counter >= helpers.DEFAULT_TRANSLATION_LANGUAGES_COUNT) {
+                        console.log(`### Successfully migrated ${platform}...`)
+                        resolve(true)
+                    }
+                })
+            })
+        })
+    })
+}
+function migrateIos(missingFromIosFileName, androidTranslationsByKey, platform) {
+
+    var migrateMeToIos = runDataTransformation(missingFromIosFileName, androidTranslationsByKey, platform)
+    helpers.iterateOverPulledFiles(platform, (data) => {
+        var language = helpers.extractLanguageFromFileName(data.fileToSave, platform)
         var translationForCurrentLanguage = []
         _(migrateMeToIos).forEach((translations, key) => {
             var value = translations[language] || helpers.NO_TRANSLATION_FOUND
@@ -53,27 +108,9 @@ function successCallback(data) {
             translationForCurrentLanguage.push(lineToWrite)
         })
 
-        helpers.appendOrCreateFile(data.fileToSave, translationForCurrentLanguage, { joinSeparator: `\n\n`, encoding: helpers.getEncoding(`ios`) })
+        helpers.appendOrCreateFile(data.fileToSave, translationForCurrentLanguage, { joinSeparator: `\n\n`, encoding: helpers.getEncoding(platform) })
     })
-
-    var migrateMeToAndroid = runDataTransformation(diffKeyFiles.missingFromAndroidFileName, data.iosData.iosTranslationsByKey, `android`)
-    var jsonTemplate = xmlHelper.getXmlFileAsJson(`${xmlHelper.translationsTemplatePath}`).then((jsonTemplate) => {
-        helpers.iterateOverPulledFiles(`android`, (data) => {
-            var language = helpers.extractLanguageFromFileName(data.fileToSave, `android`)
-            xmlHelper.getXmlFileAsJson(data.fileToSave).then((currentTranslationsAsJson) => {
-                var translationForCurrentLanguage = []
-                _(migrateMeToAndroid).forEach((translations, key) => {
-
-                    var transformedKey = helpers.sanitizeKey(key.toLowerCase()).replace(/[^\w|\d]/g, `_`)
-                    var value = translations[language]
-                    var newTranslation = xmlHelper.getTemplateAsJson(transformedKey, value)
-                    currentTranslationsAsJson.resources.string.push(newTranslation)
-                })
-
-                xmlHelper.buildXmlFrom(currentTranslationsAsJson, data.fileToSave)
-            })
-        })
-    })
+    console.log(`### Successfully migrated ${platform}...`)
 }
 
 function runDataTransformation(missingFromIosFileName, translationsByKey, platform) {
@@ -128,7 +165,7 @@ function aggregateEasyToUseDictionary(leftKeysToMigrate, translationsByKey, plat
 function showDuplicatedTranslationPatterns(translationsPerKey, platform) {
     var err = []
     _(translationsPerKey).forEach((value, key) => {
-        if (value.count > 12) {
+        if (value.count > helpers.DEFAULT_TRANSLATION_LANGUAGES_COUNT) {
             err.push(`\tDuplicate translation: "${key}" while migrating from ${platform}`)
         }
     })

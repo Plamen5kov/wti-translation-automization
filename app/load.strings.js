@@ -19,7 +19,6 @@ console.log(iosReg)
  */
 const iosPlaceholderRegex = /%(?:[12]\$@|[@d])/g
 const androidPlaceholderRegex = /%(?:(?:4\$\.4|\.(?:0[24]|2))f|2\$(?:\.2f|s)|1\$(?:\.2f|s)|3\$s|2%s|[ds])/g
-const DEFAULT_TRANSLATION_LANGUAGES_COUNT = 12
 const iosSplitKeyValueRegex = /"(.*)"\s+=\s+"(.*)"/ //I wrote this one, seems to work fine so far
 
 module.exports = {
@@ -127,7 +126,7 @@ function loaodAndroid() {
                     })
                     .value()
 
-                if (_(languageProcessedDict).size() === DEFAULT_TRANSLATION_LANGUAGES_COUNT) {
+                if (_(languageProcessedDict).size() === helpers.DEFAULT_TRANSLATION_LANGUAGES_COUNT) {
                     if (!config.disableLogging) {
                         _verifyCoherencyOfTranslations(androidTranslationsByKey, `android`)
                     }
@@ -165,8 +164,8 @@ function _verifyCoherencyOfTranslations(dictionary, platform) {
     var inconsistency = false
     var warningMessages = [`Spotted inconsistency while loading ${platform} string files:\n`]
     _.forEach(dictionary, (value, key, collection) => {
-        if (_.size(value.translationByLanguage) < DEFAULT_TRANSLATION_LANGUAGES_COUNT) {
-            var notImplementedCount = DEFAULT_TRANSLATION_LANGUAGES_COUNT - _.size(value.translationByLanguage)
+        if (_.size(value.translationByLanguage) < helpers.DEFAULT_TRANSLATION_LANGUAGES_COUNT) {
+            var notImplementedCount = helpers.DEFAULT_TRANSLATION_LANGUAGES_COUNT - _.size(value.translationByLanguage)
             inconsistency = true
             var missingLanguages = _.difference(allSupportedCountries, _.keys(value.translationByLanguage))
             warningMessages.push(`\tMissing translation for ${notImplementedCount} languages: [${missingLanguages}] for generic_key: "${value.generic_key}"\n`)

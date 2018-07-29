@@ -6,6 +6,7 @@ const config = require(`./configuration.json`)
 
 const NO_TRANSLATION_FOUND = `no translation found`
 const EN_LANGUAGE = `en`
+const DEFAULT_TRANSLATION_LANGUAGES_COUNT = 12
 
 module.exports = {
     iterateOverPulledFiles,
@@ -20,7 +21,8 @@ module.exports = {
     extractLanguageFromFileName,
     sanitizeKey,
     NO_TRANSLATION_FOUND,
-    EN_LANGUAGE
+    EN_LANGUAGE,
+    DEFAULT_TRANSLATION_LANGUAGES_COUNT
 }
 
 /**
