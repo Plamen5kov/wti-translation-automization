@@ -134,7 +134,7 @@ function writeToNewFile() {
 
     if (arguments.length >= 2) {
         for (var i in arguments) {
-            if (hasOptions && i === arguments.length - 1) {
+            if (hasOptions && (Number.parseInt(i) === arguments.length - 2)) {
                 break
             }
             var currentItem = arguments[Number.parseInt(i) + 1]

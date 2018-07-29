@@ -39,6 +39,10 @@ loadStringsApi.loadAndroidAndIosData().then((data) => {
     var migrateMeToIos = runDataTransformation(diffKeyFiles.missingFromIosFileName, data.androidData.androidTranslationsByKey, `ios`)
     var migrateMeToAndroid = runDataTransformation(diffKeyFiles.missingFromAndroidFileName, data.iosData.iosTranslationsByKey, `android`)
 
+    // _(migrateMeToIos).forEach((value, key) => {
+
+    //     var lineToWrite = `${asd}`
+    // })
     debugger
 })
 
@@ -57,6 +61,7 @@ function aggregateEasyToUseDictionary(leftKeysToMigrate, translationsByKey, plat
         var supportedCountries = config.supportedCountriesAndroid
         _(supportedCountries)
             .forEach((language) => {
+
                 var translation = translationsByKey[key].translationByLanguage[language]
                 if (translation) {
                     var placeHolder = platform === `android` ? `%s` : `%@`
