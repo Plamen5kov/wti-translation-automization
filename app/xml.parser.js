@@ -1,10 +1,11 @@
-var xml2js = require('xml2js')
-var fs = require("fs")
+var xml2js = require(`xml2js`)
+var fs = require(`fs`)
+var helpers = require(`./helpers`)
 var translationsTemplatePath = "translations-template.xml"
 
 function getXmlFileAsJson(filePath) {
     return new Promise(function (resolve, reject) {
-        var translationsTemplate = fs.readFileSync(filePath, { encoding: "UTF-8" })
+        var translationsTemplate = fs.readFileSync(filePath, { encoding: helpers.getEncoding(`android`) })
         xml2js.parseString(translationsTemplate, function (err, result) {
             if (err) {
                 return reject(err)
@@ -26,7 +27,7 @@ function buildXmlFrom(oldContent, newContent, outFilePath) {
 
     var builder = new xml2js.Builder()
     var xml = builder.buildObject(oldContent)
-    fs.writeFileSync(outFilePath, xml)
+    fs.writeFileSync(outFilePath, xml, { encoding: helpers.getEncoding(`android`) })
 }
 
 module.exports = {

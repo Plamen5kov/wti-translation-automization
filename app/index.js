@@ -43,7 +43,7 @@ loadStringsApi.loadAndroidAndIosData().then((data) => {
 })
 
 function runDataTransformation(missingFromIosFileName, translationsByKey, platform) {
-    var keysToMigrate = readKeyFile(missingFromIosFileName)
+    var keysToMigrate = readKeyFile(missingFromIosFileName, platform)
     return aggregateEasyToUseDictionary(keysToMigrate, translationsByKey, platform)
 }
 
@@ -86,8 +86,8 @@ function aggregateEasyToUseDictionary(leftKeysToMigrate, translationsByKey, plat
     return translationsPerKey
 }
 
-function readKeyFile(fileName) {
-    var missingFromIosFileContent = fs.readFileSync(fileName, { encoding: `utf8` })
+function readKeyFile(fileName, platform) {
+    var missingFromIosFileContent = fs.readFileSync(fileName, { encoding: helpers.getEncoding(platform) })
     var leftKeysToMigrate = _(missingFromIosFileContent)
         .split("\n")
         .map((line) => {
@@ -111,7 +111,7 @@ function saveMissingKeysToFiles(missingKeysInIos, missingKeysInAndroid, iosGener
         var lineToWrite = `${originalAndroidKey}***${generic_key}`
         specificAndroidKeysMissingFromIos.push(lineToWrite)
     })
-    helpers.writeToNewFile(missingFromIosFileName, specificAndroidKeysMissingFromIos)
+    helpers.writeToNewFile(missingFromIosFileName, specificAndroidKeysMissingFromIos, { encoding: helpers.getEncoding(`ios`) })
 
     // save missing keys from android to a file
     const missingFromAndroidFileName = "missing-from-android.txt"
@@ -120,7 +120,7 @@ function saveMissingKeysToFiles(missingKeysInIos, missingKeysInAndroid, iosGener
         var originalIosKey = iosGenericKeyToSpecificKey[generic_key]
         specificIosKeysMissingFromAndroid.push(originalIosKey)
     })
-    helpers.writeToNewFile(missingFromAndroidFileName, specificIosKeysMissingFromAndroid)
+    helpers.writeToNewFile(missingFromAndroidFileName, specificIosKeysMissingFromAndroid, { encoding: helpers.getEncoding(`android`) })
 
     return {
         missingFromIosFileName,

@@ -22,7 +22,8 @@ module.exports = {
     ensureDirectoryExistence,
     writeToNewFile,
     generateReportFile,
-    checkWhatsMissing
+    checkWhatsMissing,
+    getEncoding
 }
 
 /**
@@ -114,6 +115,12 @@ function ensureDirectoryExistence(filePath) {
  * @param {Object} objects/arrays/strings to write
  */
 function writeToNewFile() {
+    var hasOptions = false
+    var argsLength = arguments.length
+    if(argsLength >= 2 && (arguments[argsLength - 1] instanceof Object) && arguments[argsLength - 1].encoding) {
+        hasOptions = true;
+        var options = arguments[argsLength - 1]
+    }
     const DEFAULT_FILE_PATH = `default-output-file.txt`
     var filePath = DEFAULT_FILE_PATH
     if (arguments.length >= 1) {
@@ -127,13 +134,16 @@ function writeToNewFile() {
 
     if (arguments.length >= 2) {
         for (var i in arguments) {
+            if (hasOptions && i === arguments.length - 1) {
+                break
+            }
             var currentItem = arguments[Number.parseInt(i) + 1]
             if (currentItem instanceof Array) {
-                fs.appendFileSync(filePath, `${currentItem.join(`\n`)}`)
+                fs.appendFileSync(filePath, `${currentItem.join(`\n`)}`, options)
             } else if (currentItem instanceof Object) {
-                fs.appendFileSync(filePath, `${_.keys(currentItem).join(`\n`)}`)
+                fs.appendFileSync(filePath, `${_.keys(currentItem).join(`\n`)}`, options)
             } else if (typeof currentItem === `string`) {
-                fs.appendFileSync(filePath, currentItem)
+                fs.appendFileSync(filePath, currentItem, options)
             }
         }
     }
@@ -179,6 +189,10 @@ function generateReportFile(missingInIos, missingInAndroid, equal) {
 
     const reportAbsolutePath = path.join(__dirname, path.sep, `..`, path.sep, reportFileName)
     console.log(`### Checkout report\n${reportAbsolutePath}`)
+}
+
+function getEncoding(platform) {
+    return platform == "android" ? `UTF-8` : `UTF-16LE`
 }
 
 // PRIVATE
