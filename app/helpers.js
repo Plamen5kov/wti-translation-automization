@@ -44,6 +44,9 @@ function iterateOverPulledFiles(platform, callback) {
         var platformWtiCopyPath = _getWtiToPath(platform)
         var fileToSave = path.join(platformWtiCopyPath, customPath)
 
+        if(fileToCopy.indexOf(`zh-Hans`) != -1) {
+            fileToSave = fileToSave.replace(`zh-Hans`, `zh`)
+        }
         callback({ fileToCopy, fileToSave })
     }
 }
@@ -72,7 +75,8 @@ function deleteFolderRecursive(path) {
  */
 function clearOutFolder(platform) {
     var deleteDolder = _getWtiToPath(platform)
-    deleteFolderRecursive(androidWtiCopyToPath)
+    var wtiCopyToPath = _getWtiToPath(platform)
+    deleteFolderRecursive(wtiCopyToPath)
     console.log(`### Deleted ${deleteDolder}`)
 }
 
