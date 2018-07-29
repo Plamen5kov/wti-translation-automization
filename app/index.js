@@ -26,6 +26,7 @@ Promise.all([
  * Load android and ios data from local files and check differences
  */
 function successCallback(data) {
+
     var diffDataAndroid = helpers.checkWhatsMissing(data.iosData.iosTranslationsByKey, data.androidData.androidTranslationsByKey, `ios`)
     var diffDataIos = helpers.checkWhatsMissing(data.androidData.androidTranslationsByKey, data.iosData.iosTranslationsByKey, `android`)
 
@@ -159,6 +160,7 @@ function saveMissingKeysToFiles(missingKeysInIos, missingKeysInAndroid, iosGener
         var lineToWrite = `${originalAndroidKey}***${generic_key}`
         specificAndroidKeysMissingFromIos.push(lineToWrite)
     })
+    try { fs.unlinkSync(missingFromIosFileName) } catch (e) { }
     helpers.appendOrCreateFile(missingFromIosFileName, specificAndroidKeysMissingFromIos, { encoding: helpers.getEncoding(`ios`) })
 
     // save missing keys from android to a file
@@ -168,6 +170,7 @@ function saveMissingKeysToFiles(missingKeysInIos, missingKeysInAndroid, iosGener
         var originalIosKey = iosGenericKeyToSpecificKey[generic_key]
         specificIosKeysMissingFromAndroid.push(originalIosKey)
     })
+    try { fs.unlinkSync(missingFromAndroidFileName) } catch (e) { }
     helpers.appendOrCreateFile(missingFromAndroidFileName, specificIosKeysMissingFromAndroid, { encoding: helpers.getEncoding(`android`) })
 
     return {

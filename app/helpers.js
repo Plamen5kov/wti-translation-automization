@@ -133,7 +133,6 @@ function appendOrCreateFile() {
     if (arguments.length >= 1) {
         if (typeof arguments[0] === `string`) {
             filePath = arguments[0]
-            try { fs.unlinkSync(filePath) } catch (e) { }
         } else {
             throw `The filename you provided ${arguments[0]} is not a string.`
         }
