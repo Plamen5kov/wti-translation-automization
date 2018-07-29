@@ -2,10 +2,11 @@ var xml2js = require(`xml2js`)
 var fs = require(`fs`)
 var helpers = require(`./helpers`)
 var translationsTemplatePath = "translations-template.xml"
+var path = require(`path`)
 
 function getXmlFileAsJson(filePath) {
     return new Promise(function (resolve, reject) {
-        var translationsTemplate = fs.readFileSync(filePath, { encoding: helpers.getEncoding(`android`) })
+        var translationsTemplate = fs.readFileSync(`${filePath}`, { encoding: helpers.getEncoding(`android`) })
         xml2js.parseString(translationsTemplate, function (err, result) {
             if (err) {
                 return reject(err)
@@ -15,23 +16,27 @@ function getXmlFileAsJson(filePath) {
     })
 }
 
-function getTemplateAsString(name, value) {
-    templateAsJson.string._ = value
-    templateAsJson.string.$.name = name
-    return templateAsJson.string
+function getTemplateAsJson(name, value) {
+    value = value || helpers.NO_TRANSLATION_FOUND
+    var templateAsJson = {}
+    templateAsJson._ = value
+    templateAsJson.$ = {
+        name: name
+    }
+    return templateAsJson
 }
 
-function buildXmlFrom(oldContent, newContent, outFilePath) {
-    oldContent.resources.string.push(newContent)
-    //add check for the same property
-
-    var builder = new xml2js.Builder()
+function buildXmlFrom(oldContent, outFilePath) {
+    var builder = new xml2js.Builder({
+        headless: true
+    })
     var xml = builder.buildObject(oldContent)
+    try { fs.unlinkSync(outFilePath) } catch (e) { }
     fs.writeFileSync(outFilePath, xml, { encoding: helpers.getEncoding(`android`) })
 }
 
 module.exports = {
     getXmlFileAsJson,
-    getTemplateAsString,
+    getTemplateAsJson,
     buildXmlFrom
 }

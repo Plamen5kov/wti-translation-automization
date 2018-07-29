@@ -21,9 +21,7 @@ console.log(iosReg)
  */
 var iosPlaceholderRegex = /%(?:[12]\$@|[@d])/g
 var androidPlaceholderRegex = /%(?:(?:4\$\.4|\.(?:0[24]|2))f|2\$(?:\.2f|s)|1\$(?:\.2f|s)|3\$s|2%s|[ds])/g
-
-const DEFAULT_TRANSLATION_LANGUAGES_COUNT = 12
-
+var DEFAULT_TRANSLATION_LANGUAGES_COUNT = 12
 
 module.exports = {
     loadIos,
@@ -60,8 +58,7 @@ function loadIos() {
     helpers.iterateOverPulledFiles(`ios`, (data) => {
         var fileContent = fs.readFileSync(data.fileToSave, { encoding: helpers.getEncoding(`ios`) })
 
-        var firtsDotIndex = data.fileToSave.indexOf(".", config.iosWtiCopyToPath.length)
-        var language = data.fileToSave.substring(`${config.iosWtiCopyToPath}${path.sep}`.length, firtsDotIndex)
+        var language = helpers.extractLanguageFromFileName(data.fileToSave, `ios`)
 
         _.chain(fileContent)
             .split(os.EOL)
@@ -117,8 +114,7 @@ function loaodAndroid() {
     return new Promise((resolve, reject) => {
         helpers.iterateOverPulledFiles(`android`, (data) => {
 
-            var firtsSepIndex = data.fileToSave.indexOf(path.sep, config.androidWtiCopyToPath.length + 1)
-            var language = data.fileToSave.substring(`${config.androidWtiCopyToPath}${path.sep}values-`.length, firtsSepIndex)
+            var language = helpers.extractLanguageFromFileName(data.fileToSave, `android`)
 
             xmlParser.getXmlFileAsJson(data.fileToSave).then((json) => {
                 var processedKeyValues = _.chain(json.resources.string)
@@ -182,13 +178,9 @@ function _verifyCoherencyOfTranslations(dictionary, platform) {
     }
 }
 
-function _sanitizeGenericKey(genericKey) {
-    return genericKey.replace(/“|”|\\\\"|\.|:|\n|\'|\\|\,|\?|\)|\(|/g, "")
-}
-
 function _pushToDictionary(dictionary, genericKey, extractedKey, extractedValue, language, genericKeyToSpecificKey) {
     var transformedGenericKey = config.caseSensitiveSearch ? genericKey : genericKey.toLowerCase()
-    transformedGenericKey = _sanitizeGenericKey(transformedGenericKey)
+    transformedGenericKey = helpers.sanitizeKey(transformedGenericKey)
 
     if (!dictionary[extractedKey]) {
         dictionary[extractedKey] = {

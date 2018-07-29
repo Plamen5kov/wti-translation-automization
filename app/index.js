@@ -3,24 +3,29 @@ const _ = require(`lodash`)
 const fs = require(`fs`)
 const helpers = require(`./helpers`)
 const pull = require(`./wti.pull`)
-const loadStringsApi = require(`./load.strings`)
+const loadStrings = require(`./load.strings`)
 const config = require(`./configuration.json`)
+const xmlHelper = require(`./xml.parser`)
 const customSeparator = "***"
+const path = require(`path`)
+
 /**
  * Do "wti pull" strings and move them to local folder so we can work with them locally
  */
-// Promise.all([
-//     pull.wtiPull("android"),
-//     pull.wtiPull("ios")
-// ]).then((data) => {
-//     helpers.moveStrings(`ios`)
-//     helpers.moveStrings(`android`)
-// })
+Promise.all([
+    pull.wtiPull("android"),
+    pull.wtiPull("ios")
+]).then((data) => {
+    helpers.moveStrings(`ios`)
+    helpers.moveStrings(`android`)
+
+    loadStrings.loadAndroidAndIosData().then(successCallback)
+})
 
 /**
  * Load android and ios data from local files and check differences
  */
-loadStringsApi.loadAndroidAndIosData().then((data) => {
+function successCallback(data) {
     var diffDataAndroid = helpers.checkWhatsMissing(data.iosData.iosTranslationsByKey, data.androidData.androidTranslationsByKey, `ios`)
     var diffDataIos = helpers.checkWhatsMissing(data.androidData.androidTranslationsByKey, data.iosData.iosTranslationsByKey, `android`)
 
@@ -37,17 +42,37 @@ loadStringsApi.loadAndroidAndIosData().then((data) => {
     //TODO: plamen5kov: implement later (ask user to leave the keys he wants to migrate)
 
     var migrateMeToIos = runDataTransformation(diffKeyFiles.missingFromIosFileName, data.androidData.androidTranslationsByKey, `ios`)
-    var migrateMeToAndroid = runDataTransformation(diffKeyFiles.missingFromAndroidFileName, data.iosData.iosTranslationsByKey, `android`)
-
-    _(config.supportedCountriesAndroid).forEach((language) => {
+    helpers.iterateOverPulledFiles(`ios`, (data) => {
+        var language = helpers.extractLanguageFromFileName(data.fileToSave, `ios`)
         var translationForCurrentLanguage = []
         _(migrateMeToIos).forEach((translations, key) => {
-            var lineToWrite = `${key} = ${translations[language]}`
+            var value = translations[language] || helpers.NO_TRANSLATION_FOUND
+            var lineToWrite = `"${key}" = "${value}"`
             translationForCurrentLanguage.push(lineToWrite)
         })
-        // debugger
+
+        helpers.appendOrCreateFile(data.fileToSave, translationForCurrentLanguage, { joinSeparator: `\n\n`, encoding: helpers.getEncoding(`ios`) })
     })
-})
+
+    var migrateMeToAndroid = runDataTransformation(diffKeyFiles.missingFromAndroidFileName, data.iosData.iosTranslationsByKey, `android`)
+    var jsonTemplate = xmlHelper.getXmlFileAsJson(`${__dirname}${path.sep}translations-template.xml`).then((jsonTemplate) => {
+        helpers.iterateOverPulledFiles(`android`, (data) => {
+            var language = helpers.extractLanguageFromFileName(data.fileToSave, `android`)
+            xmlHelper.getXmlFileAsJson(data.fileToSave).then((currentTranslationsAsJson) => {
+                var translationForCurrentLanguage = []
+                _(migrateMeToAndroid).forEach((translations, key) => {
+
+                    var transformedKey = helpers.sanitizeKey(key.toLowerCase()).replace(/[^\w|\d]/g, `_`)
+                    var value = translations[language]
+                    var newTranslation = xmlHelper.getTemplateAsJson(transformedKey, value)
+                    currentTranslationsAsJson.resources.string.push(newTranslation)
+                })
+
+                xmlHelper.buildXmlFrom(currentTranslationsAsJson, data.fileToSave)
+            })
+        })
+    })
+}
 
 function runDataTransformation(missingFromIosFileName, translationsByKey, platform) {
     var keysToMigrate = readKeyFile(missingFromIosFileName, platform)
@@ -68,7 +93,7 @@ function aggregateEasyToUseDictionary(leftKeysToMigrate, translationsByKey, plat
                 var translation = translationsByKey[key].translationByLanguage[language]
                 if (translation) {
                     var placeHolder = platform === `android` ? `%s` : `%@`
-                    translation = translation.replace(loadStringsApi.androidPlaceholderRegex, placeHolder)
+                    translation = translation.replace(loadStrings.androidPlaceholderRegex, placeHolder)
                     if (language == "en") {
                         newKey = translation
                     }
@@ -94,14 +119,14 @@ function aggregateEasyToUseDictionary(leftKeysToMigrate, translationsByKey, plat
             console.log(_(errLines).join("\n"))
         }
     }
-    if(!config.disableLogging) showDuplicatedTranslationPatterns(translationsPerKey, platform)
+    if (!config.disableLogging) showDuplicatedTranslationPatterns(translationsPerKey, platform)
     return translationsPerKey
 }
 
 function showDuplicatedTranslationPatterns(translationsPerKey, platform) {
     var err = []
     _(translationsPerKey).forEach((value, key) => {
-        if(value.count > 12) {
+        if (value.count > 12) {
             err.push(`\tDuplicate translation: "${key}" while migrating from ${platform}`)
         }
     })
@@ -134,7 +159,7 @@ function saveMissingKeysToFiles(missingKeysInIos, missingKeysInAndroid, iosGener
         var lineToWrite = `${originalAndroidKey}***${generic_key}`
         specificAndroidKeysMissingFromIos.push(lineToWrite)
     })
-    helpers.writeToNewFile(missingFromIosFileName, specificAndroidKeysMissingFromIos, { encoding: helpers.getEncoding(`ios`) })
+    helpers.appendOrCreateFile(missingFromIosFileName, specificAndroidKeysMissingFromIos, { encoding: helpers.getEncoding(`ios`) })
 
     // save missing keys from android to a file
     const missingFromAndroidFileName = "missing-from-android.txt"
@@ -143,7 +168,7 @@ function saveMissingKeysToFiles(missingKeysInIos, missingKeysInAndroid, iosGener
         var originalIosKey = iosGenericKeyToSpecificKey[generic_key]
         specificIosKeysMissingFromAndroid.push(originalIosKey)
     })
-    helpers.writeToNewFile(missingFromAndroidFileName, specificIosKeysMissingFromAndroid, { encoding: helpers.getEncoding(`android`) })
+    helpers.appendOrCreateFile(missingFromAndroidFileName, specificIosKeysMissingFromAndroid, { encoding: helpers.getEncoding(`android`) })
 
     return {
         missingFromIosFileName,
