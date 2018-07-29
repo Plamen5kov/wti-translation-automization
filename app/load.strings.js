@@ -126,9 +126,7 @@ function loaodAndroid() {
                         var genericKey = value._.replace(androidPlaceholderRegex, "{placeholder}")
                         var extractedKey = value.$.name
                         var extractedValue = value._
-                        if(extractedKey === "type_") {
-                            // debugger
-                        }
+
                         _pushToDictionary(androidTranslationsByKey, genericKey, extractedKey, extractedValue, language, androidGenericKeyToSpecificKey)
                         languageProcessedDict[language] = language
                     })

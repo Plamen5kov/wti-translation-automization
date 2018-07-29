@@ -44,7 +44,7 @@ function iterateOverPulledFiles(platform, callback) {
         var platformWtiCopyPath = _getWtiToPath(platform)
         var fileToSave = path.join(platformWtiCopyPath, customPath)
 
-        if(fileToCopy.indexOf(`zh-Hans`) != -1) {
+        if (fileToCopy.indexOf(`zh-Hans`) != -1) {
             fileToSave = fileToSave.replace(`zh-Hans`, `zh`)
         }
         callback({ fileToCopy, fileToSave })

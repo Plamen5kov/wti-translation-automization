@@ -1,16 +1,39 @@
 {
     "baseUrl": "webtranslateit.com",
-
-    "supportedCountriesIos": ["en", "cs", "ru", "pl", "ro", "tr", "el", "de", "es", "it", "zh-Hans", "fr"],
+    "supportedCountriesIos": [
+        "en",
+        "cs",
+        "ru",
+        "pl",
+        "ro",
+        "tr",
+        "el",
+        "de",
+        "es",
+        "it",
+        "zh-Hans",
+        "fr"
+    ],
     "iosWtiPath": "/Users/plamenpetkov/work/repos/iosskrillapp/SkrillPayments/SkrillPayments/Resources/Strings",
     "iosWtiCopyToPath": "pulled/ios",
     "iosCustomPath": "%supportedCountries%.lproj/Localizable.strings",
-
-    "supportedCountriesAndroid": ["en", "cs", "ru", "pl", "ro", "tr", "el", "de", "es", "it", "zh", "fr"],
+    "supportedCountriesAndroid": [
+        "en",
+        "cs",
+        "ru",
+        "pl",
+        "ro",
+        "tr",
+        "el",
+        "de",
+        "es",
+        "it",
+        "zh",
+        "fr"
+    ],
     "androidWtiPath": "/Users/plamenpetkov/work/repos/androidskrillapp/SkrillPaymentsAndroidApp",
     "androidWtiCopyToPath": "pulled/android",
     "androidCustomPath": "values-%supportedCountries%/strings_v2.xml",
-
     "reportFileSuffix": "report.txt",
     "disableLogging": false,
     "caseSensitiveSearch": false
