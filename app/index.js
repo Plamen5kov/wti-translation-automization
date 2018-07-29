@@ -39,11 +39,14 @@ loadStringsApi.loadAndroidAndIosData().then((data) => {
     var migrateMeToIos = runDataTransformation(diffKeyFiles.missingFromIosFileName, data.androidData.androidTranslationsByKey, `ios`)
     var migrateMeToAndroid = runDataTransformation(diffKeyFiles.missingFromAndroidFileName, data.iosData.iosTranslationsByKey, `android`)
 
-    // _(migrateMeToIos).forEach((value, key) => {
-
-    //     var lineToWrite = `${asd}`
-    // })
-    debugger
+    _(config.supportedCountriesAndroid).forEach((language) => {
+        var translationForCurrentLanguage = []
+        _(migrateMeToIos).forEach((translations, key) => {
+            var lineToWrite = `${key} = ${translations[language]}`
+            translationForCurrentLanguage.push(lineToWrite)
+        })
+        // debugger
+    })
 })
 
 function runDataTransformation(missingFromIosFileName, translationsByKey, platform) {
@@ -54,12 +57,12 @@ function runDataTransformation(missingFromIosFileName, translationsByKey, platfo
 function aggregateEasyToUseDictionary(leftKeysToMigrate, translationsByKey, platform) {
     var translationsPerKey = {}
     var errLines = []
+
     _(leftKeysToMigrate).forEach((key) => {
         var newKey
         var err = { occured: false, key: "", lang: [] }
 
-        var supportedCountries = config.supportedCountriesAndroid
-        _(supportedCountries)
+        _(config.supportedCountriesAndroid)
             .forEach((language) => {
 
                 var translation = translationsByKey[key].translationByLanguage[language]
@@ -72,23 +75,38 @@ function aggregateEasyToUseDictionary(leftKeysToMigrate, translationsByKey, plat
 
                     if (!translationsPerKey[newKey]) {
                         translationsPerKey[newKey] = {}
+                        translationsPerKey[newKey].count = 0
                     }
                     translationsPerKey[newKey][language] = translation
+                    translationsPerKey[newKey].count++
+
                 } else {
                     err.occured = true
                     err.key = key
                     err.lang.push(language)
                 }
             })
-        if (err.occured) errLines.push(`\tMissing translation for android key: ${err.key} on [${_(err.lang).join(`,`)}]`)
+        if (err.occured) errLines.push(`\tMissing translation for ${platform} key: "${err.key}" on [${_(err.lang).join(`,`)}]`)
     })
     if (!config.disableLogging) {
         if (errLines.length) {
-            console.log(`\nSpotted a problem while migrating android translations to ios`)
-            console.log(_(errLines).join("\t\n"))
+            console.log(`\nSpotted a problem while migrating ${platform} translations`)
+            console.log(_(errLines).join("\n"))
         }
     }
+    if(!config.disableLogging) showDuplicatedTranslationPatterns(translationsPerKey, platform)
     return translationsPerKey
+}
+
+function showDuplicatedTranslationPatterns(translationsPerKey, platform) {
+    var err = []
+    _(translationsPerKey).forEach((value, key) => {
+        if(value.count > 12) {
+            err.push(`\tDuplicate translation: "${key}" while migrating from ${platform}`)
+        }
+    })
+    console.log(`\nSpotted a problem while migrating ${platform}`)
+    console.log(err.join(`\n`))
 }
 
 function readKeyFile(fileName, platform) {

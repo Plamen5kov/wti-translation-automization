@@ -35,6 +35,6 @@
     "androidWtiCopyToPath": "pulled/android",
     "androidCustomPath": "values-%supportedCountries%/strings_v2.xml",
     "reportFileSuffix": "report.txt",
-    "disableLogging": false,
+    "disableLogging": true,
     "caseSensitiveSearch": false
 }
