@@ -36,15 +36,13 @@ loadStringsApi.loadAndroidAndIosData().then((data) => {
     // user interaction prompt?
     //TODO: plamen5kov: implement later (ask user to leave the keys he wants to migrate)
 
-    // run ios migration
-    
-    var migrateMeToIos = runIosMigration(diffKeyFiles.missingFromIosFileName, data.androidData.androidTranslationsByKey, `ios`)
-    var migrateMeToAndroid = runIosMigration(diffKeyFiles.missingFromAndroidFileName, data.iosData.iosTranslationsByKey, `android`)
+    var migrateMeToIos = runDataTransformation(diffKeyFiles.missingFromIosFileName, data.androidData.androidTranslationsByKey, `ios`)
+    var migrateMeToAndroid = runDataTransformation(diffKeyFiles.missingFromAndroidFileName, data.iosData.iosTranslationsByKey, `android`)
 
     debugger
 })
 
-function runIosMigration(missingFromIosFileName, translationsByKey, platform) {
+function runDataTransformation(missingFromIosFileName, translationsByKey, platform) {
     var keysToMigrate = readKeyFile(missingFromIosFileName)
     return aggregateEasyToUseDictionary(keysToMigrate, translationsByKey, platform)
 }

@@ -58,7 +58,7 @@ function loadIos() {
     var iosGenericKeyToSpecificKey = {}
 
     helpers.iterateOverPulledFiles(`ios`, (data) => {
-        var fileContent = fs.readFileSync(data.fileToSave, { encoding: `utf16le` })
+        var fileContent = fs.readFileSync(data.fileToSave, { encoding: `UTF-16LE` })
 
         var firtsDotIndex = data.fileToSave.indexOf(".", config.iosWtiCopyToPath.length)
         var language = data.fileToSave.substring(`${config.iosWtiCopyToPath}${path.sep}`.length, firtsDotIndex)
