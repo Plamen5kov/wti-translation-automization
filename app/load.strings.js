@@ -19,7 +19,7 @@ var iosSplitKeyValueRegex = /(.*)"\s+=\s+"(.*)/ //I wrote this one, seems to wor
 var iosReg = regexgen(["%1$@", "%2$@", "%@","%d"])
 console.log(iosReg)
  */
-var iosPlaceholderRegex = /%(?:[12345]\$@|[@d])/g
+var iosPlaceholderRegex = /%(?:[12]\$@|[@d])/g
 var androidPlaceholderRegex = /%(?:(?:4\$\.4|\.(?:0[24]|2))f|2\$(?:\.2f|s)|1\$(?:\.2f|s)|3\$s|2%s|[ds])/g
 
 const DEFAULT_TRANSLATION_LANGUAGES_COUNT = 12
@@ -51,8 +51,8 @@ module.exports = {
  *                   
  */
 function loadIos() {
-    var iosTranslationsByLanguage = []
     var iosTranslationsByGenericKey = {}
+    var iosGenericKeyToSpecificKey = {}
 
     helpers.iterateOverPulledFiles(`ios`, (data) => {
         var fileContent = fs.readFileSync(data.fileToSave, { encoding: `utf16le` })
@@ -60,7 +60,7 @@ function loadIos() {
         var firtsDotIndex = data.fileToSave.indexOf(".", config.iosWtiCopyToPath.length)
         var language = data.fileToSave.substring(`${config.iosWtiCopyToPath}${path.sep}`.length, firtsDotIndex)
 
-        var processedKeyValues = _.chain(fileContent)
+        _.chain(fileContent)
             .split(os.EOL)
             .filter((val) => {
                 return !_.isEmpty(val)
@@ -71,28 +71,22 @@ function loadIos() {
                     if (splitArr) {
                         var replacedValue = splitArr[2].replace(iosPlaceholderRegex, "{placeholder}")
                         var genericKey = replacedValue.substring(0, replacedValue.length - 2)
-                        var extractedKey = splitArr[1].substring(1)
-                        var extractedValue = splitArr[2].substring(0, splitArr[2].length - 2)
-                        _pushToDictionary(iosTranslationsByGenericKey, genericKey, extractedKey, extractedValue, language)
-                        return {
-                            key: extractedKey,
-                            value: extractedValue,
-                            generic_key: genericKey
-                        }
+                        var extractedKey = splitArr[1].substring(2)
+                        var extractedValue = genericKey
+                        _pushToDictionary(iosTranslationsByGenericKey, genericKey, extractedKey, extractedValue, language, iosGenericKeyToSpecificKey)
                     }
                 }
             })
             .value()
-
-        var item = {}
-        item[language] = processedKeyValues
-        iosTranslationsByLanguage.push(item)
     })
 
     if (!config.disableLogging) {
         _verifyCoherencyOfTranslations(iosTranslationsByGenericKey, "ios")
     }
-    return iosTranslationsByGenericKey
+    return {
+        iosTranslationsByGenericKey,
+        iosGenericKeyToSpecificKey
+    }
 }
 
 /**
@@ -114,9 +108,9 @@ function loadIos() {
  *      }                  
  */
 function loaodAndroid() {
-    var androidTranslationsByLanguage = []
     var androidTranslationsByGenericKey = {}
-
+    var androidGenericKeyToSpecificKey = {}
+    var languageProcessedDict = {}
     return new Promise((resolve, reject) => {
         helpers.iterateOverPulledFiles(`android`, (data) => {
 
@@ -129,26 +123,22 @@ function loaodAndroid() {
                         var genericKey = value._.replace(androidPlaceholderRegex, "{placeholder}")
                         var extractedKey = value.$.name
                         var extractedValue = value._
-
-                        _pushToDictionary(androidTranslationsByGenericKey, genericKey, extractedKey, extractedValue, language)
-
-                        return {
-                            key: extractedKey,
-                            value: extractedValue,
-                            generic_key: genericKey
+                        if(extractedKey === "type_") {
+                            // debugger
                         }
+                        _pushToDictionary(androidTranslationsByGenericKey, genericKey, extractedKey, extractedValue, language, androidGenericKeyToSpecificKey)
+                        languageProcessedDict[language] = language
                     })
                     .value()
 
-                var item = {}
-                item[language] = processedKeyValues
-                androidTranslationsByLanguage.push(item)
-
-                if (androidTranslationsByLanguage.length === DEFAULT_TRANSLATION_LANGUAGES_COUNT) {
+                if (_(languageProcessedDict).size() === DEFAULT_TRANSLATION_LANGUAGES_COUNT) {
                     if (!config.disableLogging) {
                         _verifyCoherencyOfTranslations(androidTranslationsByGenericKey, "android")
                     }
-                    resolve(androidTranslationsByGenericKey)
+                    resolve({
+                        androidTranslationsByGenericKey,
+                        androidGenericKeyToSpecificKey
+                    })
                 }
             })
         })
@@ -192,10 +182,10 @@ function _verifyCoherencyOfTranslations(dictionary, platform) {
 }
 
 function _sanitizeGenericKey(genericKey) {
-    return genericKey.replace(/“|”|\\\\"|\.|:|\n|\s|\'|\\|\,|\?|/g, "")
+    return genericKey.replace(/“|”|\\\\"|\.|:|\n|\'|\\|\,|\?|\)|\(|/g, "")
 }
 
-function _pushToDictionary(dictionary, genericKey, extractedKey, extractedValue, language) {
+function _pushToDictionary(dictionary, genericKey, extractedKey, extractedValue, language, genericKeyToSpecificKey) {
     var transformedGenericKey = config.caseSensitiveSearch ? genericKey : genericKey.toLowerCase()
     transformedGenericKey = _sanitizeGenericKey(transformedGenericKey)
 
@@ -206,6 +196,7 @@ function _pushToDictionary(dictionary, genericKey, extractedKey, extractedValue,
     }
     if (language === "en") {
         dictionary[extractedKey].generic_key = transformedGenericKey
+        genericKeyToSpecificKey[transformedGenericKey] = extractedKey
     }
     if (!dictionary[extractedKey].translationByLanguage[language]) {
         dictionary[extractedKey].translationByLanguage[language] = extractedValue
