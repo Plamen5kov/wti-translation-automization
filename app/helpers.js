@@ -1,6 +1,7 @@
 var path = require(`path`)
 var fs = require(`fs`)
 const _ = require(`lodash`)
+const config = require(`./configuration.json`)
 
 var { androidWtiPath,
     androidWtiCopyToPath,
@@ -19,7 +20,9 @@ module.exports = {
     clearOutFolder,
     moveStrings,
     ensureDirectoryExistence,
-    writeToNewFile
+    writeToNewFile,
+    generateReportFile,
+    checkWhatsMissing
 }
 
 /**
@@ -125,11 +128,53 @@ function writeToNewFile() {
                 fs.appendFileSync(filePath, `${currentItem.join(`\n`)}`)
             } else if (currentItem instanceof Object) {
                 fs.appendFileSync(filePath, `${_.keys(currentItem).join(`\n`)}`)
-            } else if (typeof currentItem ===`string`) {
+            } else if (typeof currentItem === `string`) {
                 fs.appendFileSync(filePath, currentItem)
             }
         }
     }
+}
+
+/**
+ * Check what genericKeys are missing from @param fillInArray
+ * @param {Array} checkFromArray 
+ * @param {Array} fillInArray
+ */
+function checkWhatsMissing(checkFromArray, fillInArray, platform) {
+    function getGenericKey(item) {
+        return item.generic_key
+    }
+    var checkFromArrayGenericKeys = _.chain(checkFromArray).map(getGenericKey).value()
+    var fillInArrayGenericKeys = _.chain(fillInArray).map(getGenericKey).value()
+
+    var equalGenericKeys = {}
+    var differentGenericKeys = _.differenceWith(checkFromArrayGenericKeys, fillInArrayGenericKeys, (iosItem, androidItem) => {
+        const isEqual = iosItem === androidItem
+        if (isEqual) equalGenericKeys[iosItem] = true
+
+        return isEqual
+    })
+
+    return {
+        differentGenericKeys,
+        equalGenericKeys
+    }
+}
+
+function generateReportFile(missingInIos, missingInAndroid, equal) {
+    var reportFileName = `${config.reportFileSuffix}`
+
+    writeToNewFile(reportFileName,
+        `### Equal ios and android translations: Size: ${_.size(equal)}\n`,
+        equal,
+        `\n\n\n### Translations missing in android Size: ${missingInAndroid.length}\n`,
+        missingInAndroid,
+        `\n\n\n### Translations missing in ios Size: ${missingInIos.length}\n`,
+        missingInIos
+    )
+
+    const reportAbsolutePath = path.join(__dirname, path.sep, `..`, path.sep, reportFileName)
+    console.log(`### Checkout report\n${reportAbsolutePath}`)
 }
 
 // PRIVATE
