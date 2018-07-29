@@ -1,5 +1,6 @@
 var path = require(`path`)
 var fs = require(`fs`)
+const _ = require(`lodash`)
 
 var { androidWtiPath,
     androidWtiCopyToPath,
@@ -17,7 +18,8 @@ module.exports = {
     deleteFolderRecursive,
     clearOutFolder,
     moveStrings,
-    ensureDirectoryExistence
+    ensureDirectoryExistence,
+    writeToNewFile
 }
 
 /**
@@ -97,6 +99,37 @@ function ensureDirectoryExistence(filePath) {
     }
     ensureDirectoryExistence(dirname)
     fs.mkdirSync(dirname)
+}
+
+/**
+ * Write arguments to file
+ * @param {String} fileName
+ * @param {Object} objects/arrays/strings to write
+ */
+function writeToNewFile() {
+    const DEFAULT_FILE_PATH = `default-output-file.txt`
+    var filePath = DEFAULT_FILE_PATH
+    if (arguments.length >= 1) {
+        if (typeof arguments[0] === `string`) {
+            filePath = arguments[0]
+            try { fs.unlinkSync(filePath) } catch (e) { }
+        } else {
+            throw `The filename you provided ${arguments[0]} is not a string.`
+        }
+    }
+
+    if (arguments.length >= 2) {
+        for (var i in arguments) {
+            var currentItem = arguments[Number.parseInt(i) + 1]
+            if (currentItem instanceof Array) {
+                fs.appendFileSync(filePath, `${currentItem.join(`\n`)}`)
+            } else if (currentItem instanceof Object) {
+                fs.appendFileSync(filePath, `${_.keys(currentItem).join(`\n`)}`)
+            } else if (typeof currentItem ===`string`) {
+                fs.appendFileSync(filePath, currentItem)
+            }
+        }
+    }
 }
 
 // PRIVATE

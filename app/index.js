@@ -21,14 +21,12 @@ const path = require(`path`)
  * Load android and ios data from local files and check differences
  */
 loadStringsApi.loadAndroidAndIosData().then((data) => {
-    var missingInIos = _checkWhatsMissing(data.iosData, data.androidData, `ios`) //got in android missing in ios
-    var missingInAndroid = _checkWhatsMissing(data.androidData, data.iosData, `android`) //got in ios missing in android
+    var diffDataIos = _checkWhatsMissing(data.iosData, data.androidData, `ios`)
+    var diffDataAndroid = _checkWhatsMissing(data.androidData, data.iosData, `android`)
 
-    try { fs.unlinkSync("differences.txt") } catch (e) { }
-    fs.appendFileSync("differences.txt", `### only in android. Size ${_(missingInIos).size()}\n\n`)
-    fs.appendFileSync("differences.txt", _(missingInIos).sort().join("\n"))
-    fs.appendFileSync("differences.txt", `\n\n\n### only in ios. Size ${_(missingInAndroid).size()}\n\n`)
-    fs.appendFileSync("differences.txt", _(missingInAndroid).sort().join("\n"))
+    _generateReportFile(diffDataAndroid.differentGenericKeys,
+        diffDataIos.differentGenericKeys,
+        diffDataAndroid.equalGenericKeys)
 })
 
 // PRIVATE
@@ -51,20 +49,26 @@ function _checkWhatsMissing(checkFromArray, fillInArray, platform) {
 
         return isEqual
     })
-    _generateReportFile(equalGenericKeys, differentGenericKeys, platform)
-    return differentGenericKeys
+
+    return {
+        differentGenericKeys,
+        equalGenericKeys
+    }
 }
 
-function _generateReportFile(equalGenericKeys, differentGenericKeys, platform) {
-    var reportFileName = `${platform}-${config.reportFileSuffix}`
+function _generateReportFile(missingInIos, missingInAndroid, equal) {
+    var reportFileName = `${config.reportFileSuffix}`
 
-    try { fs.unlinkSync(reportFileName) } catch (e) { }
-    fs.writeFileSync(reportFileName, `### Equal ios and android translations: Size: ${_.size(equalGenericKeys)} ###\n`)
-    fs.appendFileSync(reportFileName, `${_.keys(equalGenericKeys).join(`\n`)}`)
-    fs.appendFileSync(reportFileName, `\n\n\n### Translations only in ${platform}: Size: ${differentGenericKeys.length} ###\n`)
-    fs.appendFileSync(reportFileName, `${differentGenericKeys.join(`\n`)}`)
+    helpers.writeToNewFile(reportFileName,
+        `### Equal ios and android translations: Size: ${_.size(equal)}\n`,
+        equal,
+        `\n\n\n### Translations missing in android Size: ${missingInAndroid.length}\n`,
+        missingInAndroid,
+        `\n\n\n### Translations missing in ios Size: ${missingInIos.length}\n`,
+        missingInIos
+    )
+
     const reportAbsolutePath = path.join(__dirname, path.sep, `..`, path.sep, reportFileName)
-
     console.log(`### Checkout report\n${reportAbsolutePath}`)
 }
 
