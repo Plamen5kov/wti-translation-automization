@@ -1,8 +1,16 @@
-var xml2js = require(`xml2js`)
-var fs = require(`fs`)
-var helpers = require(`./helpers`)
-var translationsTemplatePath = "translations-template.xml"
-var path = require(`path`)
+const xml2js = require(`xml2js`)
+const fs = require(`fs`)
+const path = require(`path`)
+
+const helpers = require(`./helpers`)
+const translationsTemplatePath = path.join(__dirname, `translations-template.xml`)
+
+module.exports = {
+    getXmlFileAsJson,
+    getTemplateAsJson,
+    buildXmlFrom,
+    translationsTemplatePath
+}
 
 function getXmlFileAsJson(filePath) {
     return new Promise(function (resolve, reject) {
@@ -33,10 +41,4 @@ function buildXmlFrom(oldContent, outFilePath) {
     var xml = builder.buildObject(oldContent)
     try { fs.unlinkSync(outFilePath) } catch (e) { }
     fs.writeFileSync(outFilePath, xml, { encoding: helpers.getEncoding(`android`) })
-}
-
-module.exports = {
-    getXmlFileAsJson,
-    getTemplateAsJson,
-    buildXmlFrom
 }

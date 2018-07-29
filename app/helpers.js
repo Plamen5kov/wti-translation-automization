@@ -1,19 +1,11 @@
-var path = require(`path`)
-var fs = require(`fs`)
+const path = require(`path`)
+const fs = require(`fs`)
 const _ = require(`lodash`)
-const config = require(`./configuration.json`)
-const NO_TRANSLATION_FOUND = `no translation found`
 
-var { androidWtiPath,
-    androidWtiCopyToPath,
-    iosWtiPath,
-    iosWtiCopyToPath,
-    supportedCountriesIos,
-    supportedCountriesAndroid,
-    iosCustomPath,
-    androidCustomPath,
-    disableLogging
-} = require(`./configuration.json`)
+const config = require(`./configuration.json`)
+
+const NO_TRANSLATION_FOUND = `no translation found`
+const EN_LANGUAGE = `en`
 
 module.exports = {
     iterateOverPulledFiles,
@@ -27,11 +19,12 @@ module.exports = {
     getEncoding,
     extractLanguageFromFileName,
     sanitizeKey,
-    NO_TRANSLATION_FOUND
+    NO_TRANSLATION_FOUND,
+    EN_LANGUAGE
 }
 
 /**
- * Iterate through platform files with translations. You can see the path to those files in the "configuration.json" file.
+ * Iterate through platform files with translations. You can see the dirPath to those files in the "configuration.json" file.
  * @param {String} platform 
  * @param {Function} callback 
  */
@@ -39,7 +32,7 @@ function iterateOverPulledFiles(platform, callback) {
 
     var customPathPattern = _getCustomPathPattern(platform)
     var supportedCountries = _getSupportedCountries(platform)
-    var rootDir = `${__dirname}${path.sep}..`
+    var rootDir = path.join(__dirname, `..`)
     for (var i in supportedCountries) {
         var currentSupportedCountry = supportedCountries[i]
         var customPath = customPathPattern.replace(/%\w+%/g, currentSupportedCountry)
@@ -59,20 +52,20 @@ function iterateOverPulledFiles(platform, callback) {
 }
 
 /**
- * Delete fs path recursively
- * @param {String} path 
+ * Delete fs dirPath recursively
+ * @param {String} dirPath 
  */
-function deleteFolderRecursive(path) {
-    if (fs.existsSync(path)) {
-        fs.readdirSync(path).forEach(function (file, index) {
-            var curPath = path + "/" + file
+function deleteFolderRecursive(dirPath) {
+    if (fs.existsSync(dirPath)) {
+        fs.readdirSync(dirPath).forEach(function (file, index) {
+            var curPath = path.join(dirPath, file)
             if (fs.lstatSync(curPath).isDirectory()) {
                 deleteFolderRecursive(curPath)
             } else {
                 try { fs.unlinkSync(curPath) } catch (e) { }
             }
         })
-        fs.rmdirSync(path)
+        fs.rmdirSync(dirPath)
     }
 }
 
@@ -97,7 +90,7 @@ function moveStrings(platform) {
     iterateOverPulledFiles(platform, (data) => {
         ensureDirectoryExistence(data.fileToSave)
         fs.copyFileSync(data.fileToCopy, data.fileToSave, () => { })
-        if (!disableLogging) console.log(`Copied files from\n"${data.fileToCopy}" to\n"${data.fileToSave}"\n`)
+        if (!config.disableLogging) console.log(`Copied files from\n"${data.fileToCopy}" to\n"${data.fileToSave}"\n`)
     })
     console.log(`### Copied files from\n"${_getWtiFromPath(platform)}" to\n"${_getWtiToPath(platform)}"\n`)
 }
@@ -194,43 +187,42 @@ function generateReportFile(missingInIos, missingInAndroid, equal) {
         missingInIos
     )
 
-    const reportAbsolutePath = path.join(__dirname, path.sep, `..`, path.sep, reportFileName)
+    const reportAbsolutePath = path.join(__dirname, `..`, reportFileName)
     console.log(`### Checkout report\n${reportAbsolutePath}`)
 }
 
 function getEncoding(platform) {
-    return platform == "android" ? `UTF-8` : `UTF-16LE`
+    return platform == `android` ? `UTF-8` : `UTF-16LE`
 }
 
 function extractLanguageFromFileName(fileToSave, platform) {
-    var searchDir = platform === "android" ? config.androidWtiCopyToPath : config.iosWtiCopyToPath
-    var searchForPattern = platform === "android" ?
-        `${searchDir}${path.sep}values-` :
-        `${searchDir}${path.sep}`
+    var searchDir = platform === `android` ? config.androidWtiCopyToPath : config.iosWtiCopyToPath
+    var searchForPattern = platform === `android` ?
+        path.join(searchDir, `values-`) :
+        path.join(searchDir, path.sep)
 
     var searchForIndex = fileToSave.indexOf(searchForPattern)
     searchForIndex += searchForPattern.length
-    const EN_LANGUAGE = `en`
     return fileToSave.substr(searchForIndex, EN_LANGUAGE.length)
 }
 
 function sanitizeKey(key) {
-    return key.replace(/“|”|\\\\"|\.|:|\n|\'|\\|\,|\?|\)|\(|/g, "")
+    return key.replace(/“|”|\\\\"|\.|:|\n|\'|\\|\,|\?|\)|\(|/g, ``)
 }
 
 // PRIVATE
 function _getWtiFromPath(platform) {
-    return platform == "android" ? androidWtiPath : iosWtiPath
+    return platform == `android` ? config.androidWtiPath : config.iosWtiPath
 }
 
 function _getWtiToPath(platform) {
-    return platform == "android" ? androidWtiCopyToPath : iosWtiCopyToPath
+    return platform == `android` ? config.androidWtiCopyToPath : config.iosWtiCopyToPath
 }
 
 function _getCustomPathPattern(platform) {
-    return platform == "android" ? androidCustomPath : iosCustomPath
+    return platform == `android` ? config.androidCustomPath : config.iosCustomPath
 }
 
 function _getSupportedCountries(platform) {
-    return platform == "android" ? supportedCountriesAndroid : supportedCountriesIos
+    return platform == `android` ? config.supportedCountriesAndroid : config.supportedCountriesIos
 }

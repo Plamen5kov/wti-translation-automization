@@ -1,20 +1,21 @@
 const _ = require(`lodash`)
-
 const fs = require(`fs`)
+const path = require(`path`)
+
 const helpers = require(`./helpers`)
 const pull = require(`./wti.pull`)
 const loadStrings = require(`./load.strings`)
 const config = require(`./configuration.json`)
 const xmlHelper = require(`./xml.parser`)
-const customSeparator = "***"
-const path = require(`path`)
+
+const customSeparator = `***`
 
 /**
  * Do "wti pull" strings and move them to local folder so we can work with them locally
  */
 Promise.all([
-    pull.wtiPull("android"),
-    pull.wtiPull("ios")
+    pull.wtiPull(`android`),
+    pull.wtiPull(`ios`)
 ]).then((data) => {
     helpers.moveStrings(`ios`)
     helpers.moveStrings(`android`)
@@ -56,7 +57,7 @@ function successCallback(data) {
     })
 
     var migrateMeToAndroid = runDataTransformation(diffKeyFiles.missingFromAndroidFileName, data.iosData.iosTranslationsByKey, `android`)
-    var jsonTemplate = xmlHelper.getXmlFileAsJson(`${__dirname}${path.sep}translations-template.xml`).then((jsonTemplate) => {
+    var jsonTemplate = xmlHelper.getXmlFileAsJson(`${xmlHelper.translationsTemplatePath}`).then((jsonTemplate) => {
         helpers.iterateOverPulledFiles(`android`, (data) => {
             var language = helpers.extractLanguageFromFileName(data.fileToSave, `android`)
             xmlHelper.getXmlFileAsJson(data.fileToSave).then((currentTranslationsAsJson) => {
@@ -86,7 +87,7 @@ function aggregateEasyToUseDictionary(leftKeysToMigrate, translationsByKey, plat
 
     _(leftKeysToMigrate).forEach((key) => {
         var newKey
-        var err = { occured: false, key: "", lang: [] }
+        var err = { occured: false, key: ``, lang: [] }
 
         _(config.supportedCountriesAndroid)
             .forEach((language) => {
@@ -95,7 +96,7 @@ function aggregateEasyToUseDictionary(leftKeysToMigrate, translationsByKey, plat
                 if (translation) {
                     var placeHolder = platform === `android` ? `%s` : `%@`
                     translation = translation.replace(loadStrings.androidPlaceholderRegex, placeHolder)
-                    if (language == "en") {
+                    if (language === helpers.EN_LANGUAGE) {
                         newKey = translation
                     }
 
@@ -117,7 +118,7 @@ function aggregateEasyToUseDictionary(leftKeysToMigrate, translationsByKey, plat
     if (!config.disableLogging) {
         if (errLines.length) {
             console.log(`\nSpotted a problem while migrating ${platform} translations`)
-            console.log(_(errLines).join("\n"))
+            console.log(_(errLines).join(`\n`))
         }
     }
     if (!config.disableLogging) showDuplicatedTranslationPatterns(translationsPerKey, platform)
@@ -138,7 +139,7 @@ function showDuplicatedTranslationPatterns(translationsPerKey, platform) {
 function readKeyFile(fileName, platform) {
     var missingFromIosFileContent = fs.readFileSync(fileName, { encoding: helpers.getEncoding(platform) })
     var leftKeysToMigrate = _(missingFromIosFileContent)
-        .split("\n")
+        .split(`\n`)
         .map((line) => {
             var splitArr = line.split(customSeparator)
             if (splitArr) {
@@ -153,7 +154,7 @@ function readKeyFile(fileName, platform) {
 function saveMissingKeysToFiles(missingKeysInIos, missingKeysInAndroid, iosGenericKeyToSpecificKey, androidGenericKeyToSpecificKey) {
 
     // save missing keys from ios to a file
-    const missingFromIosFileName = "missing-from-ios.txt"
+    const missingFromIosFileName = `missing-from-ios.txt`
     var specificAndroidKeysMissingFromIos = []
     _(missingKeysInAndroid).forEach((generic_key) => {
         var originalAndroidKey = androidGenericKeyToSpecificKey[generic_key]
@@ -164,7 +165,7 @@ function saveMissingKeysToFiles(missingKeysInIos, missingKeysInAndroid, iosGener
     helpers.appendOrCreateFile(missingFromIosFileName, specificAndroidKeysMissingFromIos, { encoding: helpers.getEncoding(`ios`) })
 
     // save missing keys from android to a file
-    const missingFromAndroidFileName = "missing-from-android.txt"
+    const missingFromAndroidFileName = `missing-from-android.txt`
     var specificIosKeysMissingFromAndroid = []
     _(missingKeysInIos).forEach((generic_key) => {
         var originalIosKey = iosGenericKeyToSpecificKey[generic_key]
