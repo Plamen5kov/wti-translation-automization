@@ -5,6 +5,9 @@
 * `npm install`
 * open `app/configuration.json` and set up your environment
 * `node app/index.js`
+* migrated string files are in the `pulled/(ios/android)` folder.
+
+>Note: If you're going to copy paste directly to iOS strings folder, rename `zh` to `zh-Hans` first.
 
 ## Problems to think about:
  
