@@ -41,7 +41,7 @@ now you can use your fingerprint to log into the **** app instead of your pin.\n
     device is jailbroken
 ```
 
-* what is Toza Koza and why is it in every android CAK translation?*
+*what is Toza Koza and why is it in every android CAK translation?*
 
 ```
 Compte chèque / Toza Koza
