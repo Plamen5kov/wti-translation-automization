@@ -1,5 +1,18 @@
-## How to run:
+## What is this?
+An attempt at a tool to automate string translation synchronization between Android and Ios.
 
+*The main idea:* When an iOS or an Android team requests translation and that translation is done, this translation will be syncronized between the two repos with a run of a command.
+
+Currently the tool `wti pulls` the strings and makes a local copy and DOES NOT operate on the original files!
+
+## Prerequisites
+* `git clone ssh://git@bitbucket.neterra.paysafe.com:7999/mobile/androidskrillapp.git`
+* `git clone ssh://git@bitbucket.neterra.paysafe.com:7999/mobile/iosskrillapp.git`
+* globaly installed [wti tool](https://github.com/AtelierConvivialite/webtranslateit#installation)
+
+>You'll need these repos so you can point the tool to the folder inside each repo pointing to the `.wti` file.
+
+## How to run:
 * `git clone ssh://git@bitbucket.neterra.paysafe.com:7999/~plamenpetkov/webtranslateit-tool.git`
 * `cd webtranslateit-tool`
 * `npm install`
@@ -10,7 +23,6 @@
 >Note: If you're going to copy paste directly to iOS strings folder, rename `zh` to `zh-Hans` first.
 
 ## Problems to think about:
- 
 *generic_key === english translaction*
 
 * "wait let me take a selfie" *> different quotes on android and ios causes different generic_key
