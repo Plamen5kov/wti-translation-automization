@@ -212,7 +212,7 @@ function extractLanguageFromFileName(fileToSave, platform) {
 }
 
 function sanitizeKey(key) {
-    return key.replace(/“|”|\\\\"|\.|:|\n|\'|\\|\,|\?|\)|\(|/g, ``)
+    return key.replace(/“|”|\\\\"|\.|:|\n|\'|\\|\,|\?|\)|\(|\|/g, ``)
 }
 
 function getOppositePlaceholder(platform) {
