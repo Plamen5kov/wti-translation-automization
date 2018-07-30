@@ -11,6 +11,14 @@ const prompter = require(`./prompter`)
 
 const customSeparator = `***`
 
+const args = process.argv
+var moveBackAfterFinished = false
+if (args.length >= 3) {
+    if (args[2] === "--mbaf") {
+        moveBackAfterFinished = true
+    }
+}
+
 /**
  * Do "wti pull" strings and move them to local folder so we can work with them locally
  */
@@ -46,16 +54,24 @@ function successCallback(data) {
         switch (choice) {
             case 1:
                 migrateIos(diffKeyFiles.missingFromIosFileName, data.androidData.androidTranslationsByKey, `ios`)
+                if (moveBackAfterFinished) moveSynchronizedFilesBack(`ios`)
                 process.exit(0)
                 break;
             case 2:
                 migrateAndroid(diffKeyFiles.missingFromAndroidFileName, data.iosData.iosTranslationsByKey, `android`)
-                    .then(() => { process.exit(0) })
+                    .then(() => {
+                        if (moveBackAfterFinished) moveSynchronizedFilesBack(`android`)
+                        process.exit(0)
+                    })
                 break;
             case 3:
                 migrateIos(diffKeyFiles.missingFromIosFileName, data.androidData.androidTranslationsByKey, `ios`)
+                if (moveBackAfterFinished) moveSynchronizedFilesBack(`ios`)
                 migrateAndroid(diffKeyFiles.missingFromAndroidFileName, data.iosData.iosTranslationsByKey, `android`)
-                    .then(() => { process.exit(0) })
+                    .then(() => {
+                        if (moveBackAfterFinished) moveSynchronizedFilesBack(`android`)
+                        process.exit(0)
+                    })
                 break;
             case 4:
                 process.exit(0)
@@ -65,6 +81,12 @@ function successCallback(data) {
                 break;
         }
 
+    })
+}
+
+function moveSynchronizedFilesBack(platform) {
+    helpers.iterateOverPulledFiles(platform, (data) => {
+        fs.copyFileSync(data.fileToSave, data.fileToCopy, () => { })
     })
 }
 

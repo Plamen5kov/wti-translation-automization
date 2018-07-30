@@ -31,7 +31,7 @@
         "zh",
         "fr"
     ],
-    "androidWtiPath": "/Users/plamenpetkov/work/repos/androidskrillapp/SkrillPaymentsAndroidApp",
+    "androidWtiPath": "/Users/plamenpetkov/work/repos/androidskrillapp/SkrillPaymentsAndroidApp/src/main/res",
     "androidWtiCopyToPath": "pulled/android",
     "androidCustomPath": "values-%supportedCountries%/strings_v2.xml",
     "reportFileSuffix": "report.txt",
