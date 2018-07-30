@@ -27,7 +27,8 @@ module.exports = {
     loadAndroidAndIosData,
     iosPlaceholderRegex,
     androidPlaceholderRegex,
-    iosSplitKeyValueRegex
+    iosSplitKeyValueRegex,
+    getOpositePlatformPlaceholderRegex
 }
 
 /**
@@ -192,4 +193,8 @@ function _pushToDictionary(dictionary, genericKey, extractedKey, extractedValue,
     if (!dictionary[extractedKey].translationByLanguage[language]) {
         dictionary[extractedKey].translationByLanguage[language] = extractedValue
     }
+}
+
+function getOpositePlatformPlaceholderRegex(platform) {
+    return platform === "android" ? iosPlaceholderRegex : androidPlaceholderRegex
 }

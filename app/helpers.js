@@ -21,7 +21,7 @@ module.exports = {
     getEncoding,
     extractLanguageFromFileName,
     sanitizeKey,
-    getPlaceholder,
+    getOppositePlaceholder,
     NO_TRANSLATION_FOUND,
     EN_LANGUAGE,
     DEFAULT_TRANSLATION_LANGUAGES_COUNT,
@@ -215,7 +215,7 @@ function sanitizeKey(key) {
     return key.replace(/“|”|\\\\"|\.|:|\n|\'|\\|\,|\?|\)|\(|/g, ``)
 }
 
-function getPlaceholder(platform) {
+function getOppositePlaceholder(platform) {
     return platform === `android` ? `%s` : `%@`
 }
 

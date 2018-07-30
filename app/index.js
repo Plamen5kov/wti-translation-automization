@@ -153,8 +153,10 @@ function aggregateEasyToUseDictionary(leftKeysToMigrate, translationsByKey, plat
 
                 var translation = translationsByKey[key].translationByLanguage[language]
                 if (translation) {
-                    var placeHolder = helpers.getPlaceholder(platform)
-                    translation = translation.replace(helpers.PLACEHOLDER, placeHolder)
+                    var opositePlatformRegex = loadStrings.getOpositePlatformPlaceholderRegex(platform)
+                    translation = translation.replace(opositePlatformRegex, helpers.PLACEHOLDER)
+                    var placeHolder = helpers.getOppositePlaceholder(platform)
+                    translation = translation.replace(new RegExp(helpers.PLACEHOLDER, `g`), placeHolder)
                     if (language === helpers.EN_LANGUAGE) {
                         newKey = translation
                     }
