@@ -101,7 +101,16 @@ function migrateAndroid(missingFromAndroidFileName, iosTranslationsByKey, platfo
                     var translationForCurrentLanguage = []
                     _(migrateMeToAndroid).forEach((translations, key) => {
 
-                        var transformedKey = key.replace(loadStrings.androidPlaceholderRegex, ``).replace(/[^\w|\d]/g, `_`).toLocaleLowerCase()
+                        var transformedKey = _(key)
+                            .thru((v) => { return v.replace(loadStrings.androidPlaceholderRegex, ``) })
+                            .thru((v) => { return helpers.sanitizeKey(v) })
+                            .thru((v) => { return v.replace(/[^\w|\d]/g, `_`) })
+                            .thru((v) => { return v.toLocaleLowerCase() })
+                            .thru((v) => { return _(v).trimStart(`_`) })
+                            .thru((v) => { return _(v).trimEnd(`_`) })
+                            .thru((v) => { return v.match(/^\d/) ? `_${v}` : v })
+                            .value()
+
                         var value = translations[language]
                         var newTranslation = xmlHelper.getTemplateAsJson(transformedKey, value)
                         currentTranslationsAsJson.resources.string.push(newTranslation)
@@ -158,12 +167,6 @@ function aggregateEasyToUseDictionary(leftKeysToMigrate, translationsByKey, plat
                     var placeHolder = helpers.getOppositePlaceholder(platform)
                     translation = translation.replace(new RegExp(helpers.PLACEHOLDER, `g`), placeHolder)
                     if (language === helpers.EN_LANGUAGE) {
-                        translation = _(translation)
-                            .thru((v) => { return _(v).trimStart(`_`) })
-                            .thru((v) => { return _(v).trimEnd(`_`) })
-                            .thru((v) => { return v.match(/^\d/) ? `_${v}` : v })
-                            .value()
-
                         newKey = translation
                     }
 
