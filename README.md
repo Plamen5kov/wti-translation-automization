@@ -1,6 +1,12 @@
+## How to run:
+
+* `git clone ssh://git@bitbucket.neterra.paysafe.com:7999/~plamenpetkov/webtranslateit-tool.git`
+* `cd webtranslateit-tool`
+* `npm install`
+* open `app/configuration.json` and set up your environment
+* `node app/index.js`
 
 ## Problems to think about:
-
  
 *generic_key === english translaction*
 
