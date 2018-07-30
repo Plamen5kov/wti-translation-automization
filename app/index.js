@@ -131,8 +131,8 @@ function aggregateEasyToUseDictionary(leftKeysToMigrate, translationsByKey, plat
 
                 var translation = translationsByKey[key].translationByLanguage[language]
                 if (translation) {
-                    var placeHolder = platform === `android` ? `%s` : `%@`
-                    translation = translation.replace(loadStrings.androidPlaceholderRegex, placeHolder)
+                    var placeHolder = helpers.getPlaceholder(platform)
+                    translation = translation.replace(helpers.PLACEHOLDER, placeHolder)
                     if (language === helpers.EN_LANGUAGE) {
                         newKey = translation
                     }
@@ -141,6 +141,7 @@ function aggregateEasyToUseDictionary(leftKeysToMigrate, translationsByKey, plat
                         translationsPerKey[newKey] = {}
                         translationsPerKey[newKey].count = 0
                     }
+
                     translationsPerKey[newKey][language] = translation
                     translationsPerKey[newKey].count++
 

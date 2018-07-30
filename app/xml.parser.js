@@ -36,9 +36,15 @@ function getTemplateAsJson(name, value) {
 
 function buildXmlFrom(oldContent, outFilePath) {
     var builder = new xml2js.Builder({
-        headless: true
+        headless: true,
+        renderOpts: {
+            pretty: true,
+            indent: `    `,
+            newline: `\n`
+        }
     })
-    var xml = builder.buildObject(oldContent)
+    const prefix = `<?xml version="1.0" encoding="utf-8"?>\n`
+    var xml = `${prefix}${builder.buildObject(oldContent)}`
     try { fs.unlinkSync(outFilePath) } catch (e) { }
     fs.writeFileSync(outFilePath, xml, { encoding: helpers.getEncoding(`android`) })
 }

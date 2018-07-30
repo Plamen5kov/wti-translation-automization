@@ -7,6 +7,7 @@ const config = require(`./configuration.json`)
 const NO_TRANSLATION_FOUND = `no translation found`
 const EN_LANGUAGE = `en`
 const DEFAULT_TRANSLATION_LANGUAGES_COUNT = 12
+const PLACEHOLDER = `{placeholder}`
 
 module.exports = {
     iterateOverPulledFiles,
@@ -20,9 +21,11 @@ module.exports = {
     getEncoding,
     extractLanguageFromFileName,
     sanitizeKey,
+    getPlaceholder,
     NO_TRANSLATION_FOUND,
     EN_LANGUAGE,
-    DEFAULT_TRANSLATION_LANGUAGES_COUNT
+    DEFAULT_TRANSLATION_LANGUAGES_COUNT,
+    PLACEHOLDER
 }
 
 /**
@@ -210,6 +213,10 @@ function extractLanguageFromFileName(fileToSave, platform) {
 
 function sanitizeKey(key) {
     return key.replace(/“|”|\\\\"|\.|:|\n|\'|\\|\,|\?|\)|\(|/g, ``)
+}
+
+function getPlaceholder(platform) {
+    return platform === `android` ? `%s` : `%@`
 }
 
 // PRIVATE

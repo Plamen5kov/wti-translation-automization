@@ -67,7 +67,7 @@ function loadIos() {
                 if (!_.isEmpty(value)) {
                     var splitArr = iosSplitKeyValueRegex.exec(value)
                     if (splitArr) {
-                        var replacedValue = splitArr[2].replace(iosPlaceholderRegex, `{placeholder}`)
+                        var replacedValue = splitArr[2].replace(iosPlaceholderRegex, helpers.PLACEHOLDER)
                         var genericKey = replacedValue
                         var extractedKey = splitArr[1]
                         var extractedValue = genericKey
@@ -117,7 +117,7 @@ function loaodAndroid() {
             xmlParser.getXmlFileAsJson(data.fileToSave).then((json) => {
                 var processedKeyValues = _.chain(json.resources.string)
                     .map((value, key, collection) => {
-                        var genericKey = value._.replace(androidPlaceholderRegex, `{placeholder}`)
+                        var genericKey = value._.replace(androidPlaceholderRegex, helpers.PLACEHOLDER)
                         var extractedKey = value.$.name
                         var extractedValue = value._
 
