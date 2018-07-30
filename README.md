@@ -3,7 +3,7 @@ An attempt at a tool to automate string translation synchronization between Andr
 
 *The main idea:* When an iOS or an Android team requests translation and that translation is done, this translation will be syncronized between the two repos with a run of a command.
 
-Currently the tool `wti pulls` the strings and makes a local copy and DOES NOT operate on the original files!
+Currently the tool `wti pulls` the strings and makes a local copy and DOES NOT operate on the original files! (unless you pass --mbaf - Move back after finished)
 
 ## Prerequisites
 * `git clone ssh://git@bitbucket.neterra.paysafe.com:7999/mobile/androidskrillapp.git`
