@@ -8,3 +8,5 @@ differences.txt
 report.txt
 missing-from-android.txt
 missing-from-ios.txt
+
+.DS_Store

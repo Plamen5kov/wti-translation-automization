@@ -79,10 +79,10 @@ function deleteFolderRecursive(dirPath) {
  * @param {String} platform 
  */
 function clearOutFolder(platform) {
-    var deleteDolder = _getWtiToPath(platform)
+    var deleteFolder = _getWtiToPath(platform)
     var wtiCopyToPath = _getWtiToPath(platform)
     deleteFolderRecursive(wtiCopyToPath)
-    console.log(`### Deleted ${deleteDolder}`)
+    console.log(`### Deleted ${deleteFolder}`)
 }
 
 /**
