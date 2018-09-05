@@ -9,7 +9,10 @@ module.exports = {
     getXmlFileAsJson,
     getTemplateAsJson,
     buildXmlFrom,
-    translationsTemplatePath
+    translationsTemplatePath,
+    xmlJsonToRegularKeyValue,
+    getResolvedJson,
+    regularJsonToXmlFormat
 }
 
 function getXmlFileAsJson(filePath) {
@@ -34,7 +37,7 @@ function getTemplateAsJson(name, value) {
     return templateAsJson
 }
 
-function buildXmlFrom(oldContent, outFilePath) {
+function buildXmlFrom(content, outFilePath) {
     var builder = new xml2js.Builder({
         headless: true,
         renderOpts: {
@@ -44,7 +47,37 @@ function buildXmlFrom(oldContent, outFilePath) {
         }
     })
     const prefix = `<?xml version="1.0" encoding="utf-8"?>\n`
-    var xml = `${prefix}${builder.buildObject(oldContent)}`
+    var xml = `${prefix}${builder.buildObject(content)}`
     try { fs.unlinkSync(outFilePath) } catch (e) { }
     fs.writeFileSync(outFilePath, xml, { encoding: helpers.getEncoding(`android`) })
+}
+
+let keyValueMap = {};
+function xmlJsonToRegularKeyValue(data) {
+    // if(data && data.resources && data.resources.string)
+        for(let index in data.resources.string) {
+                keyValueMap[data.resources.string[index].$.name] = data.resources.string[index]._
+        }
+}
+
+function getResolvedJson() {
+    return keyValueMap;
+}
+
+let count = 0
+function regularJsonToXmlFormat(data) {
+    let xmlFormat = {
+        resources: {
+            string: []
+        }
+    }
+    
+    for(let cItem in data) {
+        xmlFormat.resources.string[count] = {_: "",$: {name: ""}}
+        xmlFormat.resources.string[count]._ = cItem._ = data[cItem]
+        xmlFormat.resources.string[count].$.name = cItem
+        count++
+    }
+
+    return xmlFormat
 }
